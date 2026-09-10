@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - master
 
 jobs:
   build:
@@ -40,22 +39,39 @@ jobs:
             libffi-dev \
             libssl-dev
 
-      - name: Install Buildozer and dependencies
+      - name: Prepare python-for-android
+        run: |
+          git clone --depth 1 https://github.com/kivy/python-for-android.git python-for-android
+
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("python-for-android/pythonforandroid/build.py")
+          text = path.read_text()
+
+          old = "shprint(host_python, '-m', 'venv', 'venv')"
+          new = "shprint(host_python, '-m', 'venv', '--clear', 'venv')"
+
+          if old not in text:
+              raise SystemExit(
+                  "ERROR: Expected python-for-android venv line was not found."
+              )
+
+          path.write_text(text.replace(old, new, 1))
+          print("python-for-android patched successfully.")
+          PY
+
+          grep -n "venv.*--clear" python-for-android/pythonforandroid/build.py
+
+      - name: Install Buildozer
         run: |
           python -m pip install --upgrade pip
-          python -m pip install buildozer==1.5.0
-          python -m pip install cython==0.29.33
-          python -m pip install virtualenv
-
-      - name: Install stable python-for-android
-        run: |
-          python -m pip install --upgrade \
-            "https://github.com/kivy/python-for-android/archive/refs/heads/stable.zip"
+          python -m pip install buildozer cython
 
       - name: Clean previous Buildozer files
         run: |
           rm -rf .buildozer
-          rm -rf ~/.buildozer
+          rm -rf bin
 
       - name: Build APK
         run: |
