@@ -43,6 +43,8 @@ android.accept_sdk_license = True
 
 # (str) Supported architectures
 android.archs = arm64-v8a,armeabi-v7a
+# Python-for-Android custom source
+p4a.source_dir = %(source.dir)s/python-for-android
 
 # (bool) Enable Android logcat on build errors
 log_level = 2
